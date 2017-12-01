@@ -11,6 +11,10 @@
 #ifndef __ATM_H__
 #define __ATM_H__
 
+#define NO_USER 0
+#define USER 1
+#define MAX_USERNAME 251
+
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -25,6 +29,8 @@ typedef struct _ATM
 
     // Protocol state
     // TODO add more, as needed
+    int in_session;
+    char *curr_user;
 } ATM;
 
 ATM* atm_create();
@@ -32,5 +38,6 @@ void atm_free(ATM *atm);
 ssize_t atm_send(ATM *atm, char *data, size_t data_len);
 ssize_t atm_recv(ATM *atm, char *data, size_t max_data_len);
 void atm_process_command(ATM *atm, char *command);
+void atm_exec(ATM *atm, char *parsed, char *full_command);
 
 #endif

@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <regex.h>
+#include <math.h>
 
 ATM* atm_create()
 {
@@ -30,9 +33,9 @@ ATM* atm_create()
     // Set up the protocol state
     // TODO set up more, as needed
 
-    /*atm->in_session = 0;
-    memset(atm->currUser,0x00,251);
-    */
+    atm->in_session = 1;
+    atm->curr_user = malloc(MAX_USERNAME);
+    
     return atm;
 }
 
@@ -41,6 +44,7 @@ void atm_free(ATM *atm)
     if(atm != NULL)
     {
         close(atm->sockfd);
+        free(atm->curr_user);
         free(atm);
     }
 }
@@ -58,73 +62,82 @@ ssize_t atm_recv(ATM *atm, char *data, size_t max_data_len)
     return recvfrom(atm->sockfd, data, max_data_len, 0, NULL, NULL);
 }
 
-void atm_process_command(ATM *atm, char *command)
-{
-    // TODO: Implement the ATM's side of the ATM-bank protocol
+void atm_process_command(ATM *atm, char *command){
 
-	/*
-	 * The following is a toy example that simply sends the
-	 * user's command to the bank, receives a message from the
-	 * bank, and then prints it to stdout.
-	 */
+	regex_t command_regex;
+    int reg_compile_code;
+    char* command_regex_string = "^\\s*(begin-session|balance|withdraw|end-session)\\s+";
 
-	/*
-    char recvline[10000];
-    int n;
+    //ensure regex compilation
+    reg_compile_code = regcomp(&command_regex, command_regex_string,
+        REG_EXTENDED);
 
-    atm_send(atm, command, strlen(command));
-    n = atm_recv(atm,recvline,10000);
-    recvline[n]=0;
-    fputs(recvline,stdout);
-	*/
-	/*char tempA1[14];
-	char tempA2[251];
-	char arg1[14];
-	char arg2[251];
+    if(reg_compile_code){
+        // error comp code
+        fprintf(stderr, "%s\n", "Regex Compilation Failed.");
+        exit(1);
+    }else{
+        //find matches to determine a command
+        regmatch_t command_match[2];
+        int exec_error;
+        exec_error = regexec(&command_regex, command, 2, command_match, 0);
 
-	memset(arg1,0x00, 14);
-	memset(arg2,0x00, 251);
-	memset(tempA1,0x00,14);
-	memset(tempA2,0x00,251);
+        //check whether a valid command was inputted
+        if(!exec_error){
+            int start = command_match[1].rm_so;
+            int end = command_match[1].rm_eo;
+            char parsed_command[end - start + 1];
+            
+            //extract the command from the input
+            parsed_command[end - start] = '\0';
+            strncpy(parsed_command, &command[command_match[1].rm_so],
+                    command_match[1].rm_eo - command_match[1].rm_so);
 
-	sscanf(command, "%s %s" arg1, arg2);
-
-	if (strncmp(arg1, "begin-session", 13) == 0) {
-		// code for begin session
-
-	}
-
-	else if (strncmp(arg1, "withdraw", 8) == 0) {
-		// code for withdraw
-		if (atm->in_session == 0) {
-			printf("No user logged in\n");
-			return;
-		}
-	}
-
-	else if (strncmp(arg1, "balance", 7) == 0) {
-		// code for balance
-	}
-
-	else if (strncmp(arg1, "end-session", 7) == 0) {
-		if (atm->in_session == 0) {
-			printf("No user logged in\n");
-			return;
-		}
-		else {
-			atm->in_session = 0;
-			memset(atm->currUser,0x00,251);
-			printf("User logged out\n");
-			return;
-		}
-
-	}
-
-	else {
-		printf("Invalid command\n");
-	}
-
-
-*/
-
+            // check whether a correct command was inputted given the current state
+            if(atm->in_session == NO_USER && !strcmp(parsed_command, "begin-session")){
+            	atm_exec(atm, parsed_command, command);
+            }else if (atm->in_session == USER && strcmp(parsed_command, "begin-session")){
+            	atm_exec(atm, parsed_command, command);
+            }else{
+            	//print appropriate failure message
+            	if(atm->in_session == USER){
+            		printf("%s\n", "A user is already logged in");
+            	}else{
+            		printf("%s\n", "No user logged in");
+            	}
+            }
+        }else{
+            // not one of the three valid commands
+            printf("%s\n", "Invalid command");
+        }
+    }
+    regfree(&command_regex);	
 }
+
+
+void atm_exec(ATM *atm, char* command, char* full_command){
+   const char *BEGIN = "begin-session";
+   const char *WITHDRAW = "withdraw";
+   const char *END = "end-session";
+
+   // determine if the commands are well-formed
+   if(!strncmp(command, END, strlen(END))){
+   		//ending the session
+   		memset(atm->curr_user, 0, MAX_USERNAME);
+   		atm->in_session = NO_USER;
+   		printf("%s\n", "User logged out");
+   }else if(!strncmp(command, BEGIN, strlen(BEGIN))){
+        regex_t deposit_args_regex;
+        char* deposit_args_string 
+            = "^\\s*deposit\\s+([a-zA-Z]+)\\s+([0-9]+)\\s*$";
+        int deposit_code;
+        deposit_code = regcomp(&deposit_args_regex, deposit_args_string,
+                               REG_EXTENDED);
+
+   }else if(!strncmp(command, WITHDRAW, strlen(WITHDRAW))){
+   		//this is withdraw
+   }else{
+   	//this is balance
+   }
+}
+

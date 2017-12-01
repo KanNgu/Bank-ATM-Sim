@@ -10,11 +10,20 @@
 
 static const char prompt[] = "ATM: ";
 
-int main()
+int main(int argc, char**argv)
 {
     char user_input[1000];
-
     ATM *atm = atm_create();
+    FILE *atm_fp;
+    atm_fp = fopen(argv[1], "r");
+
+    // ensure .bank file can be opened
+    if(atm_fp == NULL){
+      printf("%s\n", "Error opening bank initialization file");
+      return 64;
+    }
+
+    
 
     printf("%s", prompt);
     fflush(stdout);

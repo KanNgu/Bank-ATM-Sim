@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include "hash_table.h"
 
-#define MAX_USERNAME 250
+#define MAX_USERNAME 251
 #define MAX_SIZE 1000
 #define DEFAULT_SIZE 10
 
