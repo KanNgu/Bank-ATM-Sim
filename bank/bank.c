@@ -61,7 +61,8 @@ ssize_t bank_recv(Bank *bank, char *data, size_t max_data_len)
     return recvfrom(bank->sockfd, data, max_data_len, 0, NULL, NULL);
 }
 
-void bank_process_local_command(Bank *bank, char *command, FILE *bank_fp){
+void bank_process_local_command(Bank *bank, char *command,
+                             FILE *bank_fp){
     regex_t command_regex;
     int reg_compile_code;
     char* command_regex_string = "^\\s*(create-user|deposit|balance)\\s+";
@@ -133,7 +134,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                 int cash_start = create_matches[3].rm_so;
                 int cash_end = create_matches[3].rm_eo;
                 char user_create_arg[user_end - user_start + 1];
-                char cash_create_arg[cash_end - cash_start + 1];
+                char *cash_create_arg = malloc(cash_end - cash_start + 1);
                 char pin_create_arg[pin_end - pin_start + 1];
 
                 //extracting the argument username
@@ -168,7 +169,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                         if(card_file != NULL){
 
                             //POSSIBLE TODO add secure card features
-
+                            printf("%s--%s--\n", user_create_arg, cash_create_arg);
                             
                             hash_table_add(bank_table, user_create_arg,
                                 cash_create_arg);
@@ -309,8 +310,8 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                 if(strlen(balance_username_arg) > MAX_USERNAME){
                     printf("%s\n", "Usage: balance <user-name>");
                 }else{
-                    char* balance_value;
-                    balance_value = hash_table_find(bank_table,
+                    char *balance_value;
+                    balance_value = (char*)hash_table_find(bank_table,
                         balance_username_arg);
                     
                     // grabbing balance if user has been created
