@@ -43,7 +43,7 @@ int main(int argc, char**argv)
        if(FD_ISSET(0, &fds))
        {
            fgets(sendline, 10000,stdin);
-           bank_process_local_command(bank, sendline, strlen(sendline), bank_fp);
+           bank_process_local_command(bank, sendline, bank_fp);
            printf("%s", prompt);
            fflush(stdout);
        }

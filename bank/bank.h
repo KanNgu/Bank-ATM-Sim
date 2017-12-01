@@ -40,7 +40,7 @@ Bank* bank_create();
 void bank_free(Bank *bank);
 ssize_t bank_send(Bank *bank, char *data, size_t data_len);
 ssize_t bank_recv(Bank *bank, char *data, size_t max_data_len);
-void bank_process_local_command(Bank *bank, char *command, size_t len, FILE *fp);
+void bank_process_local_command(Bank *bank, char *command, FILE *fp);
 void bank_process_remote_command(Bank *bank, char *command, size_t len, FILE *fp);
 void bank_exec(char *command, char *full_command, HashTable *ht);
 

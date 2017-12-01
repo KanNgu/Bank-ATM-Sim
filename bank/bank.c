@@ -61,8 +61,7 @@ ssize_t bank_recv(Bank *bank, char *data, size_t max_data_len)
     return recvfrom(bank->sockfd, data, max_data_len, 0, NULL, NULL);
 }
 
-void bank_process_local_command(Bank *bank, char *command,
-                                size_t len, FILE *bank_fp){
+void bank_process_local_command(Bank *bank, char *command, FILE *bank_fp){
     regex_t command_regex;
     int reg_compile_code;
     char* command_regex_string = "^\\s*(create-user|deposit|balance)\\s+";
