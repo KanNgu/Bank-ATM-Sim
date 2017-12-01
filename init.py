@@ -37,8 +37,8 @@ def main():
 			return 64
 
 	# both files have been created without error
-	close(bank_file)
-	close(atm_file)
+	bank_file.close()
+	atm_file.close()
 	print("Successfully initialized bank state")
 	return 0
 
