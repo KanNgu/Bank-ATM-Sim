@@ -30,6 +30,8 @@ ATM* atm_create()
     // Set up the protocol state
     // TODO set up more, as needed
 
+    atm->in_session = 0;
+    memset(atm->currUser,0x00,251);
     return atm;
 }
 
@@ -74,4 +76,54 @@ void atm_process_command(ATM *atm, char *command)
     recvline[n]=0;
     fputs(recvline,stdout);
 	*/
+	char tempA1[14];
+	char tempA2[251];
+	char arg1[14];
+	char arg2[251];
+
+	memset(arg1,0x00, 14);
+	memset(arg2,0x00, 251);
+	memset(tempA1,0x00,14);
+	memset(tempA2,0x00,251);
+
+	sscanf(command, "%s %s" arg1, arg2);
+
+	if (strncmp(arg1, "begin-session", 13) == 0) {
+		// code for begin session
+
+	}
+
+	else if (strncmp(arg1, "withdraw", 8) == 0) {
+		// code for withdraw
+		if (atm->in_session == 0) {
+			printf("No user logged in\n");
+			return;
+		}
+	}
+
+	else if (strncmp(arg1, "balance", 7) == 0) {
+		// code for balance
+	}
+
+	else if (strncmp(arg1, "end-session", 7) == 0) {
+		if (atm->in_session == 0) {
+			printf("No user logged in\n");
+			return;
+		}
+		else {
+			atm->in_session = 0;
+			memset(atm->currUser,0x00,251);
+			printf("User logged out\n");
+			return;
+		}
+
+	}
+
+	else {
+		printf("Invalid command\n");
+	}
+
+
+
+
 }
