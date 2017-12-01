@@ -19,6 +19,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdio.h>
+#include "hash_table.h"
+
+#define MAX_USERNAME 250
+#define MAX_SIZE 1000
+#define DEFAULT_SIZE 10
 
 typedef struct _Bank
 {
@@ -28,15 +33,16 @@ typedef struct _Bank
     struct sockaddr_in bank_addr;
 
     // Protocol state
-    // TODO add more, as needed
+    HashTable *database;
 } Bank;
 
 Bank* bank_create();
 void bank_free(Bank *bank);
 ssize_t bank_send(Bank *bank, char *data, size_t data_len);
 ssize_t bank_recv(Bank *bank, char *data, size_t max_data_len);
-void bank_process_local_command(Bank *bank, char *command, size_t len);
-void bank_process_remote_command(Bank *bank, char *command, size_t len);
+void bank_process_local_command(Bank *bank, char *command, size_t len, FILE *fp);
+void bank_process_remote_command(Bank *bank, char *command, size_t len, FILE *fp);
+void bank_exec(char *command, char *full_command, HashTable *ht);
 
 #endif
 

@@ -30,8 +30,9 @@ ATM* atm_create()
     // Set up the protocol state
     // TODO set up more, as needed
 
-    atm->in_session = 0;
+    /*atm->in_session = 0;
     memset(atm->currUser,0x00,251);
+    */
     return atm;
 }
 
@@ -76,7 +77,7 @@ void atm_process_command(ATM *atm, char *command)
     recvline[n]=0;
     fputs(recvline,stdout);
 	*/
-	char tempA1[14];
+	/*char tempA1[14];
 	char tempA2[251];
 	char arg1[14];
 	char arg2[251];
@@ -124,6 +125,6 @@ void atm_process_command(ATM *atm, char *command)
 	}
 
 
-
+*/
 
 }
