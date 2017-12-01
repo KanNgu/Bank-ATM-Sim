@@ -257,7 +257,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                         new_balance = current_balance + deposit_value;
                         number_length = floor(log10(abs(new_balance))) + 1;
                         
-                        char new_balance_string[number_length + 1];
+                        char *new_balance_string = malloc(number_length + 1);
                         sprintf(new_balance_string, "%d", new_balance);
                         new_balance_string[number_length] = '\0';
 
