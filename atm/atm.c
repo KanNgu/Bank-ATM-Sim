@@ -31,9 +31,7 @@ ATM* atm_create()
     bind(atm->sockfd,(struct sockaddr *)&atm->atm_addr,sizeof(atm->atm_addr));
 
     // Set up the protocol state
-    // TODO set up more, as needed
-
-    atm->in_session = 1;
+    atm->in_session = NO_USER;
     atm->curr_user = malloc(MAX_USERNAME);
     
     return atm;
@@ -127,12 +125,75 @@ void atm_exec(ATM *atm, char* command, char* full_command){
    		atm->in_session = NO_USER;
    		printf("%s\n", "User logged out");
    }else if(!strncmp(command, BEGIN, strlen(BEGIN))){
-        regex_t deposit_args_regex;
-        char* deposit_args_string 
-            = "^\\s*deposit\\s+([a-zA-Z]+)\\s+([0-9]+)\\s*$";
-        int deposit_code;
-        deposit_code = regcomp(&deposit_args_regex, deposit_args_string,
+        regex_t begin_regex;
+        char* begin_regex_string 
+            = "^\\s*begin-session\\s+([a-zA-Z]+)\\s*$";
+        int begin_comp;
+        begin_comp = regcomp(&begin_regex, begin_regex_string,
                                REG_EXTENDED);
+
+        //check if reg exp compiled
+        if(begin_comp){
+        	fprintf(stderr, "%s\n", "Compilation Unsuccessful");
+        }else{
+        	//execute regex to ensure well formed input
+            int exec_error;
+            regmatch_t create_matches[2];
+            exec_error = regexec(&begin_regex, full_command, 4,
+                create_matches, 0);
+
+            // check for well-formed command
+            if(!exec_error){
+                int user_start = create_matches[1].rm_so;
+                int user_end = create_matches[1].rm_eo;
+                char user_create_arg[user_end - user_start + 1];
+
+				//extracting the argument username
+                strncpy(user_create_arg, &full_command[user_start],
+                    user_end - user_start);
+                user_create_arg[user_end - user_start] = '\0';  
+
+                //check that a valid username is used
+                if(strlen(user_create_arg) > MAX_USERNAME){
+                    printf("%s\n", "Usage: begin-session <user-name>");
+                }else{
+                	//  get the card for for this user
+                	FILE *card_file;
+                	char *filename = malloc(275);
+     				strcat(filename, user_create_arg);
+     				strcat(filename, ".card");
+                	card_file = fopen(filename, "r");
+
+                	//check that card exists
+                	if (card_file != NULL){
+                		char *command = malloc(300);
+                		char received[1000];
+                		int n;
+                		strcat(command, "find-user ");
+                		strcat(command, user_create_arg);
+                		//check that bank has record of this user
+                		atm_send(atm, command, strlen(command));
+                		n = atm_recv(atm, received, 1000);
+
+                		if(!strcmp(received, "found")){
+                			// pin stuff in here
+                			printf("%s\n", "Enter pin");
+                		}else{
+                			printf("%s\n", "No such user");
+                		}
+
+                		free(command);
+                	}else{
+                		printf("%s\n", "Unable to access <user-name>'s card");
+                	}
+                }
+                
+        	}else{
+        		printf("%s\n", "Usage: begin-session <user-name>");
+        	}
+       }
+
+
 
    }else if(!strncmp(command, WITHDRAW, strlen(WITHDRAW))){
    		//this is withdraw

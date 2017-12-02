@@ -352,4 +352,80 @@ void bank_process_remote_command(Bank *bank, char *command,
     printf("Received the following:\n");
     fputs(command, stdout);
 	*/
+
+    /*
+
+// TODO: Implement the ATM's side of the ATM-bank protocol
+
+    /*
+     * The following is a toy example that simply sends the
+     * user's command to the bank, receives a message from the
+     * bank, and then prints it to stdout.
+     */
+
+    /*
+    char recvline[10000];
+    int n;
+
+    atm_send(atm, command, strlen(command));
+    n = atm_recv(atm,recvline,10000);
+    recvline[n]=0;
+    fputs(recvline,stdout);
+
+
+    */
+
+    printf("%s\n", "starting it out");
+
+    const char *FIND = "find user";
+
+    //given a find user command
+    if (!strncmp(command, FIND, strlen(FIND))){
+        regex_t command_regex;
+        int reg_compile_code;
+        char* command_regex_string = "find-user ([a-zA-Z]+)";
+
+        //ensure regex compilation
+        reg_compile_code = regcomp(&command_regex, command_regex_string,
+            REG_EXTENDED);
+
+        if(reg_compile_code){
+            // error comp code
+            fprintf(stderr, "%s\n", "Regex Compilation Failed.");
+            exit(1);
+        }else{
+            //find matches to determine a command
+            regmatch_t command_match[2];
+            int exec_error;
+            exec_error = regexec(&command_regex, command, 2, command_match, 0);
+
+            printf("MADE IT THIS FAR regex\n");
+
+            //check whether a valid command was inputted
+            if(!exec_error){
+                int start = command_match[1].rm_so;
+                int end = command_match[1].rm_eo;
+                char parsed_command[end - start + 1];
+                char *output;
+                
+                //extract the command from the input
+                parsed_command[end - start] = '\0';
+                strncpy(parsed_command, &command[command_match[1].rm_so],
+                        command_match[1].rm_eo - command_match[1].rm_so);
+
+                output = hash_table_find(bank->database, parsed_command);
+
+                printf("BEFORE SEND\n");
+
+                // send response back to atm
+                if(output != NULL){
+                    bank_send(bank, "found", 5);
+                }else{
+                    bank_send(bank, "not found", 9);
+                }
+            }
+        }
+    }
 }
+
+
