@@ -222,6 +222,7 @@ void atm_exec(ATM *atm, char* command, char* full_command){
 	               				 		atm->in_session = USER;
 	               				 		strncpy(atm->curr_user, user_create_arg,
 	               				 			strlen(user_create_arg));
+                                        atm->curr_user[strlen(user_create_arg)] = '\0';
 
 	               				 		printf("%s\n", "Authorized");
 	               				 	}else{
@@ -247,7 +248,28 @@ void atm_exec(ATM *atm, char* command, char* full_command){
    }else if(!strncmp(command, WITHDRAW, strlen(WITHDRAW))){
    		//this is withdraw
    }else{
-   	//this is balance
+   	    // analyzing the balance. 8 because newline is included in raw
+        if (strlen(full_command) == 8){
+            char *balance_command = malloc(500);
+            char *received = malloc(500);
+            strcpy(balance_command, "balance ");
+            strcat(balance_command, atm->curr_user);
+
+
+            printf("Balance we are sending %s\n", balance_command);
+            //check that bank has record of this user
+            atm_send(atm, balance_command, strlen(balance_command));
+            atm_recv(atm, received, 500);
+
+            //print balance
+            //printf("$%s\n", received);
+
+            free(received);
+            free(balance_command);
+        }else{
+            printf("%s\n", "Usage: balance");
+        }
+
    }
 }
 
