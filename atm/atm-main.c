@@ -23,8 +23,6 @@ int main(int argc, char**argv)
       return 64;
     }
 
-    
-
     printf("%s", prompt);
     fflush(stdout);
 

@@ -171,7 +171,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                             strcat(cardInfo, pin_create_arg);
                             fputs(cardInfo, card_file);
                             free(cardInfo);
-                            
+
                             hash_table_add(bank_table, user_create_arg,
                                 cash_create_arg);
                             printf("Created user %s\n", user_create_arg);
@@ -336,7 +336,11 @@ void bank_process_remote_command(Bank *bank, char *command,
     const char *FIND = "find user";
     const char *BALANCE = "balance";
 
-    printf("The command we are using --%s--\n", command);
+    //ensuring correct sent length essage
+    strncpy(command, command, len);
+    command[len] = '\0';
+
+    printf("And the new command is-%s-\n", command);
 
     //given a find user command
     if (!strncmp(command, FIND, strlen(FIND))){
@@ -383,7 +387,7 @@ void bank_process_remote_command(Bank *bank, char *command,
     }else if(!strncmp(command, BALANCE, strlen(BALANCE))){
         regex_t command_regex;
         int reg_compile_code;
-        char* command_regex_string = "balance ([a-zA-Z]+)";
+        char* command_regex_string = "^balance ([a-zA-Z]+)\\s*$";
         reg_compile_code = regcomp(&command_regex, command_regex_string,
             REG_EXTENDED);
 
@@ -399,20 +403,21 @@ void bank_process_remote_command(Bank *bank, char *command,
 
             //check whether a valid command was inputted
             if(!exec_error){
-
                 int start = command_match[1].rm_so;
                 int end = command_match[1].rm_eo;
                 char *parsed_username = malloc(end - start + 1);
                 char *output = malloc(150);
 
                 //extract the command from the input
-                parsed_username[end - start] = '\0';
                 strncpy(parsed_username, &command[command_match[1].rm_so],
                         command_match[1].rm_eo - command_match[1].rm_so);
+                parsed_username[end - start] = '\0';
 
-                printf("In bank parsed_username is %s\n", parsed_username);
+                printf("The full command is --%s--\n", command);
+                printf("Parsed Username %s\n", parsed_username);
 
-                output = hash_table_find(bank->database, parsed_username);
+                strcpy(output, hash_table_find(bank->database, parsed_username));
+                printf("We are sending this value: %s %d\n", output, strlen(output));
                 bank_send(bank, output, strlen(output));
             }
         }

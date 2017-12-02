@@ -166,13 +166,14 @@ void atm_exec(ATM *atm, char* command, char* full_command){
 
                 	//check that card exists
                 	if (card_file != NULL){
-                		char *command = malloc(300);
+                		char *find_command = malloc(300);
                 		char *received = malloc(1000);
-                		strcat(command, "find user ");
-                		strcat(command, user_create_arg);
+                		strcat(find_command, "find user ");
+                		strcat(find_command, user_create_arg);
+                        find_command[10 + strlen(user_create_arg)] = '\0';
 
                 		//check that bank has record of this user
-                		atm_send(atm, command, strlen(command));
+                		atm_send(atm, find_command, strlen(find_command));
                 		atm_recv(atm, received, 1000);
 
                         // check if the bank had an account of this user
@@ -235,7 +236,7 @@ void atm_exec(ATM *atm, char* command, char* full_command){
                 		}else{
                 			printf("%s\n", "No such user");
                 		}
-                		free(command);
+                		free(find_command);
                 		free(received);
                 	}else{
                 		printf("%s\n", "Unable to access <user-name>'s card");
@@ -252,17 +253,23 @@ void atm_exec(ATM *atm, char* command, char* full_command){
         if (strlen(full_command) == 8){
             char *balance_command = malloc(500);
             char *received = malloc(500);
+            int n;
             strcpy(balance_command, "balance ");
             strcat(balance_command, atm->curr_user);
+            balance_command[8 + strlen(atm->curr_user)] = '\0';
 
-
-            printf("Balance we are sending %s\n", balance_command);
             //check that bank has record of this user
             atm_send(atm, balance_command, strlen(balance_command));
-            atm_recv(atm, received, 500);
+            n = atm_recv(atm, received, 10);
+
+            printf("Recieved size %d\n", n);
+
+            //ensuring correct sent length message
+            strncpy(received, received, n);
+            received[n] = '\0';
 
             //print balance
-            //printf("$%s\n", received);
+            printf("$%s\n", received);
 
             free(received);
             free(balance_command);
