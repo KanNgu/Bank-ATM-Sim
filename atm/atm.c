@@ -80,7 +80,7 @@ void atm_process_command(ATM *atm, char *command){
         int exec_error;
         exec_error = regexec(&command_regex, command, 2, command_match, 0);
 
-        //check whether a valid command was inputted
+        //check whether a valid command was inputted in the first place
         if(!exec_error){
             int start = command_match[1].rm_so;
             int end = command_match[1].rm_eo;
@@ -146,7 +146,7 @@ void atm_exec(ATM *atm, char* command, char* full_command){
             if(!exec_error){
                 int user_start = create_matches[1].rm_so;
                 int user_end = create_matches[1].rm_eo;
-                char user_create_arg[user_end - user_start + 1];
+                char *user_create_arg = malloc(user_end - user_start + 1);
 
 				//extracting the argument username
                 strncpy(user_create_arg, &full_command[user_start],
@@ -157,7 +157,7 @@ void atm_exec(ATM *atm, char* command, char* full_command){
                 if(strlen(user_create_arg) > MAX_USERNAME){
                     printf("%s\n", "Usage: begin-session <user-name>");
                 }else{
-                	//  get the card for for this user
+                	// get the card for for this user
                 	FILE *card_file;
                 	char *filename = malloc(275);
      				strcat(filename, user_create_arg);
@@ -175,8 +175,8 @@ void atm_exec(ATM *atm, char* command, char* full_command){
                 		atm_send(atm, command, strlen(command));
                 		atm_recv(atm, received, 1000);
 
+                        // check if the bank had an account of this user
                 		if(!strcmp(received, "found")){
-                			// pin stuff in here
                 			printf("%s", "PIN? ");
                 			char *inputted_pin = malloc(1000);
                 			fgets(inputted_pin, 1000, stdin);
@@ -217,8 +217,6 @@ void atm_exec(ATM *atm, char* command, char* full_command){
 	               				 	pin_cardfile[4] = '\0';
 	               				 	pin = atoi(pin_cardfile);
 
-	               				 	printf("%s  %d   %d\n", pin_cardfile, pin, possible_pin);
-
 	               				 	// cbeck if correct pin has been entered
 	               				 	if(pin == possible_pin){
 	               				 		atm->in_session = USER;
@@ -246,9 +244,6 @@ void atm_exec(ATM *atm, char* command, char* full_command){
         		printf("%s\n", "Usage: begin-session <user-name>");
         	}
        }
-
-
-
    }else if(!strncmp(command, WITHDRAW, strlen(WITHDRAW))){
    		//this is withdraw
    }else{

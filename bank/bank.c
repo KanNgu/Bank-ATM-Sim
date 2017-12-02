@@ -91,7 +91,6 @@ void bank_process_local_command(Bank *bank, char *command,
             parsed_command[end - start] = '\0';
             strncpy(parsed_command, &command[command_match[1].rm_so],
                     command_match[1].rm_eo - command_match[1].rm_so);
-
             bank_exec(parsed_command, command, bank->database);
         }else{
             // not one of the three valid commands
@@ -133,7 +132,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                 int pin_end = create_matches[2].rm_eo;
                 int cash_start = create_matches[3].rm_so;
                 int cash_end = create_matches[3].rm_eo;
-                char user_create_arg[user_end - user_start + 1];
+                char *user_create_arg = malloc(user_end - user_start + 1);
                 char *cash_create_arg = malloc(cash_end - cash_start + 1);
                 char pin_create_arg[pin_end - pin_start + 1];
 
@@ -351,7 +350,7 @@ void bank_process_remote_command(Bank *bank, char *command,
             fprintf(stderr, "%s\n", "Regex Compilation Failed.");
             exit(1);
         }else{
-            //find matches to determine a command
+            //find matches to detedrmine a command
             regmatch_t command_match[2];
             int exec_error;
             exec_error = regexec(&command_regex, command, 2, command_match, 0);
@@ -368,11 +367,7 @@ void bank_process_remote_command(Bank *bank, char *command,
                 strncpy(parsed_command, &command[command_match[1].rm_so],
                         command_match[1].rm_eo - command_match[1].rm_so);
 
-                hash_table_add(bank->database, "dj", "34");
-                //printf("%s\n", parsed_command);
-                printf("\nThe size is a %d\n", hash_table_size(bank->database));
-
-                output = hash_table_find(bank->database, "dj");
+                output = hash_table_find(bank->database, parsed_command);
 
                 printf("The output is %s\n", output);
 
