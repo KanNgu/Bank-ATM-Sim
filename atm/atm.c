@@ -168,18 +168,71 @@ void atm_exec(ATM *atm, char* command, char* full_command){
                 	if (card_file != NULL){
                 		char *command = malloc(300);
                 		char *received = malloc(1000);
-                		int n;
                 		strcat(command, "find user ");
                 		strcat(command, user_create_arg);
+
                 		//check that bank has record of this user
                 		atm_send(atm, command, strlen(command));
-                		n = atm_recv(atm, received, 1000);
-
-                		printf("%s\n", received);
+                		atm_recv(atm, received, 1000);
 
                 		if(!strcmp(received, "found")){
                 			// pin stuff in here
-                			printf("%s\n", "Enter pin");
+                			printf("%s", "PIN? ");
+                			char *inputted_pin = malloc(1000);
+                			fgets(inputted_pin, 1000, stdin);
+                			regex_t pin_regex;
+	       					char* pin_regex_string = "^\\s*([0-9]{4})\\s*$";
+	        				int create_code;
+	        				create_code = regcomp(&pin_regex,
+	        					pin_regex_string, REG_EXTENDED);
+
+	        				// ensure compilation was sucessful
+	        				if (create_code){
+	            				fprintf(stderr, "%s\n", "Regex Compilation Unsucessful");
+	            				exit(1);
+	        				}else{
+	            				//execute regex to ensure well formed input
+	            				int exec_error;
+	            				regmatch_t create_matches[1];
+	            				exec_error = regexec(&pin_regex, inputted_pin, 4,
+	                				create_matches, 0);
+
+	            				// check for well-formed command
+	            				if(!exec_error){
+	                				int start = create_matches[1].rm_so;
+	                				int end = create_matches[1].rm_eo;
+	                				char pin_create_arg[end - end + 1];
+	                				int possible_pin, pin;
+	                				char *pin_cardfile = malloc(5);
+
+	                				//extracting the argument username
+	                				strncpy(pin_create_arg, &inputted_pin[start],
+	                    				end - start);
+	               				 	pin_create_arg[end - start] = '\0';
+	               				 	possible_pin = atoi(pin_create_arg);
+
+	               				 	//read .card file for pin
+	               				 	//TODO SAFE card reading openssl??
+	               				 	fgets(pin_cardfile, 5, card_file);
+	               				 	pin_cardfile[4] = '\0';
+	               				 	pin = atoi(pin_cardfile);
+
+	               				 	printf("%s  %d   %d\n", pin_cardfile, pin, possible_pin);
+
+	               				 	// cbeck if correct pin has been entered
+	               				 	if(pin == possible_pin){
+	               				 		atm->in_session = USER;
+	               				 		strncpy(atm->curr_user, user_create_arg,
+	               				 			strlen(user_create_arg));
+
+	               				 		printf("%s\n", "Authorized");
+	               				 	}else{
+	               				 		printf("%s\n", "Not authorized");
+	               				 	}
+	               				 }else{
+	               				 	printf("%s\n", "Not authorized");
+	               				 }
+	               			}
                 		}else{
                 			printf("%s\n", "No such user");
                 		}

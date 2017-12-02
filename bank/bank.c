@@ -169,8 +169,6 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                         //ensure patron's card was created
                         if(card_file != NULL){
                             //POSSIBLE TODO add secure card features
-                            strcat(cardInfo, user_create_arg);
-                            strcat(cardInfo, "-");
                             strcat(cardInfo, pin_create_arg);
                             fputs(cardInfo, card_file);
                             free(cardInfo);
