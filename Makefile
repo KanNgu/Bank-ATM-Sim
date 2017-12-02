@@ -22,4 +22,4 @@ test : util/list.c util/list_example.c util/hash_table.c util/hash_table_example
 	${CC} ${CFLAGS} util/list.c util/hash_table.c util/hash_table_example.c -o bin/hash-table-test
 
 clean:
-	cd bin && rm -f atm bank router init list-test hash-table-test
+	cd bin && rm -f atm bank router init list-test hash-table-test *.card
