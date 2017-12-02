@@ -51,6 +51,7 @@ int main(int argc, char**argv)
        {
            n = bank_recv(bank, recvline, 10000);
            bank_process_remote_command(bank, recvline, n, bank_fp);
+           printf("%s\n", "This has been processed");
        }
    }
    fclose(bank_fp);

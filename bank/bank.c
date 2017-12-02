@@ -334,48 +334,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
 }
 
 void bank_process_remote_command(Bank *bank, char *command,
-                                 size_t len, FILE *fp)
-{
-    // TODO: Implement the bank side of the ATM-bank protocol
-
-	/*
-	 * The following is a toy example that simply receives a
-	 * string from the ATM, prepends "Bank got: " and echoes 
-	 * it back to the ATM before printing it to stdout.
-	 */
-
-	/*
-    char sendline[1000];
-    command[len]=0;
-    sprintf(sendline, "Bank got: %s", command);
-    bank_send(bank, sendline, strlen(sendline));
-    printf("Received the following:\n");
-    fputs(command, stdout);
-	*/
-
-    /*
-
-// TODO: Implement the ATM's side of the ATM-bank protocol
-
-    /*
-     * The following is a toy example that simply sends the
-     * user's command to the bank, receives a message from the
-     * bank, and then prints it to stdout.
-     */
-
-    /*
-    char recvline[10000];
-    int n;
-
-    atm_send(atm, command, strlen(command));
-    n = atm_recv(atm,recvline,10000);
-    recvline[n]=0;
-    fputs(recvline,stdout);
-
-
-    */
-
-    printf("%s\n", "starting it out");
+                                 size_t len, FILE *fp){
 
     const char *FIND = "find user";
 
@@ -383,7 +342,7 @@ void bank_process_remote_command(Bank *bank, char *command,
     if (!strncmp(command, FIND, strlen(FIND))){
         regex_t command_regex;
         int reg_compile_code;
-        char* command_regex_string = "find-user ([a-zA-Z]+)";
+        char* command_regex_string = "find user ([a-zA-Z]+)";
 
         //ensure regex compilation
         reg_compile_code = regcomp(&command_regex, command_regex_string,
@@ -399,23 +358,25 @@ void bank_process_remote_command(Bank *bank, char *command,
             int exec_error;
             exec_error = regexec(&command_regex, command, 2, command_match, 0);
 
-            printf("MADE IT THIS FAR regex\n");
-
             //check whether a valid command was inputted
             if(!exec_error){
                 int start = command_match[1].rm_so;
                 int end = command_match[1].rm_eo;
-                char parsed_command[end - start + 1];
-                char *output;
-                
+                char *parsed_command = malloc(end - start + 1);
+                char *output = malloc(150);
+
                 //extract the command from the input
                 parsed_command[end - start] = '\0';
                 strncpy(parsed_command, &command[command_match[1].rm_so],
                         command_match[1].rm_eo - command_match[1].rm_so);
 
-                output = hash_table_find(bank->database, parsed_command);
+                hash_table_add(bank->database, "dj", "34");
+                //printf("%s\n", parsed_command);
+                printf("\nThe size is a %d\n", hash_table_size(bank->database));
 
-                printf("BEFORE SEND\n");
+                output = hash_table_find(bank->database, "dj");
+
+                printf("The output is %s\n", output);
 
                 // send response back to atm
                 if(output != NULL){
@@ -427,5 +388,3 @@ void bank_process_remote_command(Bank *bank, char *command,
         }
     }
 }
-
-

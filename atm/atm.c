@@ -167,13 +167,15 @@ void atm_exec(ATM *atm, char* command, char* full_command){
                 	//check that card exists
                 	if (card_file != NULL){
                 		char *command = malloc(300);
-                		char received[1000];
+                		char *received = malloc(1000);
                 		int n;
-                		strcat(command, "find-user ");
+                		strcat(command, "find user ");
                 		strcat(command, user_create_arg);
                 		//check that bank has record of this user
                 		atm_send(atm, command, strlen(command));
                 		n = atm_recv(atm, received, 1000);
+
+                		printf("%s\n", received);
 
                 		if(!strcmp(received, "found")){
                 			// pin stuff in here
@@ -181,13 +183,12 @@ void atm_exec(ATM *atm, char* command, char* full_command){
                 		}else{
                 			printf("%s\n", "No such user");
                 		}
-
                 		free(command);
+                		free(received);
                 	}else{
                 		printf("%s\n", "Unable to access <user-name>'s card");
                 	}
-                }
-                
+                } 
         	}else{
         		printf("%s\n", "Usage: begin-session <user-name>");
         	}
