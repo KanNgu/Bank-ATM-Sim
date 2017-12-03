@@ -260,7 +260,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                         //updating the user's balance
                         new_balance = current_balance + deposit_value;
                         if (!new_balance){
-                            new_balance = 1
+                            new_balance = 1;
                         }else{
                             number_length = floor(log10(abs(new_balance))) + 1;
                         }
@@ -520,7 +520,11 @@ void bank_process_remote_command(Bank *bank, char *command,
                         if (current_balance - amount >= 0){
 
                             new_balance = current_balance - amount;
-                            number_length = floor(log10(abs(new_balance))) + 1;
+                            if(!new_balance){
+                                number_length = 1;
+                            }else{
+                                number_length = floor(log10(abs(new_balance))) + 1;
+                            }
                             char *new_balance_string = malloc(number_length + 1);
                             sprintf(new_balance_string, "%d", new_balance);
                             new_balance_string[number_length] = '\0';
