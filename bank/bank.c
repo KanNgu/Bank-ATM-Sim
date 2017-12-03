@@ -154,7 +154,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                 //ensure the username and amount are well formed
                 if(strlen(user_create_arg) > MAX_USERNAME){
                     printf("%s\n",
-                     "Usage: create-user <user-name> <pin> <balance>");
+                     "Usage:\tcreate-user <user-name> <pin> <balance>");
                 }else{
                     // create the account if the accountname doesnt exist
                     if(hash_table_find(bank_table, user_create_arg) == NULL){
@@ -187,7 +187,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                 }
             }else{
                 printf("%s\n",
-                 "Usage: create-user <user-name> <pin> <balance>");
+                 "Usage:\tcreate-user <user-name> <pin> <balance>");
             }
         }
         regfree(&create_args_regex);
@@ -238,7 +238,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
 
                 //ensure the username and amount are well formed
                 if(strlen(user_deposit_arg) > MAX_USERNAME){
-                    printf("%s\n", "Usage: deposit <user-name> <amt>");
+                    printf("%s\n", "Usage:\tdeposit <user-name> <amt>");
                 }else if(strcmp(cash_deposit_arg, converted_int)){
                     // different strings, value must have been greater than int
                     printf("%s\n", "Too rich for this program");
@@ -272,7 +272,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                     }
                 }
             }else{
-                printf("%s\n", "Usage: deposit <user-name> <amt>");
+                printf("%s\n", "Usage:\tdeposit <user-name> <amt>");
             }
         }
         regfree(&deposit_args_regex);
@@ -308,7 +308,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
 
                 //ensure the username is well formed
                 if(strlen(balance_username_arg) > MAX_USERNAME){
-                    printf("%s\n", "Usage: balance <user-name>");
+                    printf("%s\n", "Usage:\tbalance <user-name>");
                 }else{
                     char *balance_value;
                     balance_value = (char*)hash_table_find(bank_table,
@@ -322,7 +322,7 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                     }
                 }
             }else{
-                printf("%s\n", "Usage: balance <user-name>");
+                printf("%s\n", "Usage:\tbalance <user-name>");
             }
         }
         regfree(&balance_args_regex);
@@ -466,7 +466,7 @@ void bank_process_remote_command(Bank *bank, char *command,
 
                 if(strcmp(withdraw_cash, converted_int)){
                     // different strings, value must have been greater than int
-                    printf("%s\n", "Usage: withdraw <amt>");
+                    printf("%s\n", "Usage:\twithdraw <amt>");
                 }else{
                     //make sure user account exists and deposit
                     char *balance_value;
