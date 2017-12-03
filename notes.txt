@@ -1,0 +1,14 @@
+
+Attacks
+1. Buffer Overflow
+2. Encryption of pin on card
+	- Problem - pins would be plaintext on card and easily viewed
+	- Solution - encrypted with key / IV unknown to attacker
+3. Spoof cards
+	- Problem - attacker can create custom card for himself/herself
+	- Solution - cards are certified upon creation and violation of this one time certification
+		triggers a "bad card" output
+4. Input sanatization
+	- Problem - user could enter unexpected / harmful input. (withdraw apple) | (balance 55)
+	- Solution - Avoid program 
+5. 

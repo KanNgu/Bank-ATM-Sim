@@ -9,12 +9,13 @@ def main():
 	In the specified directory
 	
 	"""
-	
+
+	print(sys.argv)
+
 	# ensure proper formatting of command
 	if len(sys.argv) != 2:
-		print("Usage: init <filename>")
-		return 62
-
+		print("Usage:\tinit <filename>")
+		exit(62)
 	else:
 		# extract path for bank and atm files
 		file_pathname = sys.argv[1]
@@ -23,8 +24,8 @@ def main():
 
 		# ensure the files haven't been created in that path already
 		if os.path.isfile(bank_file_name) or os.path.isfile(atm_file_name):
-			print('Error: one of the files already exists')
-			return 63
+			print('Error:\tone of the files already exists')
+			exit(63)
 		
 		# attempt to create both the files
 		try:
@@ -34,7 +35,7 @@ def main():
 		except:
 			# something went wrong with file creation
 			print("Error creating initialization files")
-			return 64
+			exit(64)
 
 	# both files have been created without error
 	bank_file.close()
