@@ -12,3 +12,21 @@ Attacks
 	- Problem - user could enter unexpected / harmful input. (withdraw apple) | (balance 55)
 	- Solution - Avoid program 
 5. 
+
+
+
+
+Our Encryption / Decryption
+Encryption
+1. right shift bits >> 2
+2. xor result with "vlzt"
+3. left shift result of that << 3
+4. xor result with "aqqe"
+5. ~ on result and that is encrypted value
+
+Decryption
+1. ~ on the value
+2. xor result with "aqqe"
+3. right shift result >> 3
+4. xor result with "vlzt"
+5. left shift result bits << 2

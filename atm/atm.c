@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <regex.h>
 #include <math.h>
-#include <openssl/evp.h>
 
 ATM* atm_create()
 {

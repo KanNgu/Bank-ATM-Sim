@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <regex.h>
 #include <math.h>
-#include <openssl/evp.h>
 
 
 Bank* bank_create()
