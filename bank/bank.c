@@ -193,7 +193,6 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
         regfree(&create_args_regex);
 
     }else if(!strncmp(command, DEPOSIT, strlen(DEPOSIT))){
-
         regex_t deposit_args_regex;
         char* deposit_args_string 
             = "^\\s*deposit\\s+([a-zA-Z]+)\\s+([0-9]+)\\s*$";
@@ -218,8 +217,8 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
                 int user_end = deposit_matches[1].rm_eo;
                 int cash_start = deposit_matches[2].rm_so;
                 int cash_end = deposit_matches[2].rm_eo;
-                char user_deposit_arg[user_end - user_start + 1];
-                char cash_deposit_arg[cash_end - cash_start + 1];
+                char *user_deposit_arg = malloc(user_end - user_start + 1);
+                char *cash_deposit_arg = malloc(cash_end - cash_start + 1);
 
                 //extracting the argument username
                 strncpy(user_deposit_arg, &full_command[user_start],
@@ -335,12 +334,11 @@ void bank_process_remote_command(Bank *bank, char *command,
 
     const char *FIND = "find user";
     const char *BALANCE = "balance";
+    const char *WITHDRAW = "withdraw";
 
     //ensuring correct sent length essage
     strncpy(command, command, len);
     command[len] = '\0';
-
-    printf("And the new command is-%s-\n", command);
 
     //given a find user command
     if (!strncmp(command, FIND, strlen(FIND))){
@@ -413,13 +411,96 @@ void bank_process_remote_command(Bank *bank, char *command,
                         command_match[1].rm_eo - command_match[1].rm_so);
                 parsed_username[end - start] = '\0';
 
-                printf("The full command is --%s--\n", command);
-                printf("Parsed Username %s\n", parsed_username);
+                //printf("The full command is --%s--\n", command);
+                //printf("Parsed Username %s\n", parsed_username);
 
                 strcpy(output, hash_table_find(bank->database, parsed_username));
-                printf("We are sending this value: %s %d\n", output, strlen(output));
+                //printf("We are sending this value: %s %d\n", output, strlen(output));
                 bank_send(bank, output, strlen(output));
+            }
+        }
+    }else if(!strncmp(command, WITHDRAW, strlen(WITHDRAW))){
+        //determine if we can withdraw cash money
+        regex_t withdraw_regex;
+        char* withdraw_string 
+            = "^\\s*withdraw\\s+([a-zA-Z]+)\\s+([0-9]+)\\s*$";
+        int withdraw_code;
+        withdraw_code = regcomp(&withdraw_regex, withdraw_string,
+                               REG_EXTENDED);
+
+        // ensure compilation was sucessful
+        if (withdraw_code){
+            fprintf(stderr, "%s\n", "Regex Compilation Unsucessful");
+            exit(1);
+        }else{
+            //execute regex to ensure well formed input
+            int exec_error;
+            regmatch_t withdraw_matches[3];
+            exec_error = regexec(&withdraw_regex, command, 3,
+                withdraw_matches, 0);
+
+            // check for well-formed command
+            if(!exec_error){
+                int user_start = withdraw_matches[1].rm_so;
+                int user_end = withdraw_matches[1].rm_eo;
+                int cash_start = withdraw_matches[2].rm_so;
+                int cash_end = withdraw_matches[2].rm_eo;
+                char *withdraw_arg = malloc(user_end - user_start + 1);
+                char *withdraw_cash = malloc(cash_end - cash_start + 1);
+
+                //extracting the argument username
+                strncpy(withdraw_arg, &command[user_start],
+                    user_end - user_start);
+                withdraw_arg[user_end - user_start] = '\0';
+
+                //extracting the argument name
+                strncpy(withdraw_cash, &command[cash_start],
+                    cash_end - cash_start);
+                withdraw_cash[cash_end - cash_start] = '\0';
+
+                // using atoi max_int feature to limit deposit amount
+                int amount = atoi(withdraw_cash);
+                char converted_int[cash_end - cash_start + 1];
+                sprintf(converted_int, "%d", amount);
+                converted_int[cash_end - cash_start] = '\0';
+
+                if(strcmp(withdraw_cash, converted_int)){
+                    // different strings, value must have been greater than int
+                    printf("%s\n", "Usage: withdraw <amt>");
+                }else{
+                    //make sure user account exists and deposit
+                    char *balance_value;
+                    balance_value = hash_table_find(bank->database, withdraw_arg);
+                    
+                    // add the money to the account
+                    if(balance_value != NULL){
+                        int new_balance, number_length;
+                        int current_balance = atoi(balance_value);
+
+                        //updating the user's balance if enough funds
+                        if (current_balance - amount >= 0){
+                            new_balance = current_balance - amount;
+                            number_length = floor(log10(abs(new_balance))) + 1;
+                        
+                            char *new_balance_string = malloc(number_length + 1);
+                            sprintf(new_balance_string, "%d", new_balance);
+                            new_balance_string[number_length] = '\0';
+
+                            hash_table_del(bank->database, withdraw_arg);
+                            hash_table_add(bank->database, withdraw_arg, new_balance_string);
+
+                            //printf("%s\n", hash_table_find(bank->database, withdraw_arg));
+                            bank_send(bank, withdraw_cash, strlen(withdraw_cash));
+                        }else{
+                            //not enough money
+                            bank_send(bank, "-1", 2);
+                        }
+                    }else{
+                        printf("%s\n", "No such user");
+                    }
+                }
             }
         }
     }
 }
+

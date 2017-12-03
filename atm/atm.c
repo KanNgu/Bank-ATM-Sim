@@ -247,7 +247,58 @@ void atm_exec(ATM *atm, char* command, char* full_command){
         	}
        }
    }else if(!strncmp(command, WITHDRAW, strlen(WITHDRAW))){
-   		//this is withdraw
+        regex_t withdraw_regex;
+        char* withdraw_regex_string 
+            = "^\\s*withdraw\\s+([0-9]+)\\s*$";
+        int with_comp;
+        with_comp = regcomp(&withdraw_regex, withdraw_regex_string,
+                               REG_EXTENDED);
+
+        //check if reg exp compiled
+        if(with_comp){
+            fprintf(stderr, "%s\n", "Compilation Unsuccessful");
+        }else{
+            //execute regex to ensure well formed input
+            int exec_error;
+            regmatch_t create_matches[2];
+            exec_error = regexec(&withdraw_regex, full_command, 2,
+                create_matches, 0);
+
+            // check for well-formed command
+            if(!exec_error){
+                int start = create_matches[1].rm_so;
+                int end = create_matches[1].rm_eo;
+                char *amount_arg = malloc(end - start + 1);
+
+                //extracting the argument username
+                strncpy(amount_arg, &full_command[start],
+                    end - start);
+                amount_arg[end - start] = '\0'; 
+
+                char *withdraw_command = malloc(500);
+                char *received = malloc(500);
+                int n;
+                strcpy(withdraw_command, "withdraw ");
+                strcat(withdraw_command, atm->curr_user);
+                strcat(withdraw_command, " ");
+                strcat(withdraw_command, amount_arg);
+                withdraw_command[9 + strlen(atm->curr_user) +
+                    1 + strlen(amount_arg)] = '\0';
+
+                atm_send(atm, withdraw_command, strlen(withdraw_command));
+                n = atm_recv(atm, received, 10);
+                strncpy(received, received, n);
+                received[n] = '\0';
+
+                if(!strcmp(received, "-1")){
+                    printf("%s\n", "Insufficient funds");
+                }else{
+                    printf("$%s dispensed\n", received);
+                }
+            }else{
+                printf("%s\n", "Usage: withdraw <amt>");
+            }
+        }
    }else{
    	    // analyzing the balance. 8 because newline is included in raw
         if (strlen(full_command) == 8){
@@ -261,8 +312,6 @@ void atm_exec(ATM *atm, char* command, char* full_command){
             //check that bank has record of this user
             atm_send(atm, balance_command, strlen(balance_command));
             n = atm_recv(atm, received, 10);
-
-            printf("Recieved size %d\n", n);
 
             //ensuring correct sent length message
             strncpy(received, received, n);
