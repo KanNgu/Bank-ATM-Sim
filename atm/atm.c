@@ -305,8 +305,8 @@ void atm_exec(ATM *atm, char* command, char* full_command){
                 atm_send(atm, withdraw_command, strlen(withdraw_command));
                 n = atm_recv(atm, received, 1000);
                 //decrytption of message recieved 
-                 for (i = 0; i < strlen(received); i++) {
-                received[i] = received[i]^keyR;
+                for (i = 0; i < strlen(received); i++) {
+                    received[i] = received[i]^keyR;
                 }   
                 strncpy(received, received, n);
                 received[n] = '\0';
