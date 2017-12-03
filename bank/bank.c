@@ -339,9 +339,18 @@ void bank_process_remote_command(Bank *bank, char *command,
     const char *FIND = "find user";
     const char *BALANCE = "balance";
     const char *WITHDRAW = "withdraw";
-
+    const char *FOUND = "found";
+    const char *NOTFOUND = "not found";
+    const char *NOCASH = "nocash";
+    const int key = 239485914;
+    const int keyR = 482837124;
+    int i;
     //ensuring correct sent length essage
     strncpy(command, command, len);
+    //decrytion of sent command using key
+    for (i = 0; i < strlen(command); i++) {
+    command[i] = command[i]^key;
+    }
     command[len] = '\0';
 
     //given a find user command
@@ -370,6 +379,8 @@ void bank_process_remote_command(Bank *bank, char *command,
                 int end = command_match[1].rm_eo;
                 char *parsed_command = malloc(end - start + 1);
                 char *output = malloc(150);
+                char *result = malloc(200);
+                memset(result,0x00,200);
 
                 //extract the command from the input
                 parsed_command[end - start] = '\0';
@@ -380,9 +391,21 @@ void bank_process_remote_command(Bank *bank, char *command,
 
                 // send response back to atm
                 if(output != NULL){
-                    bank_send(bank, "found", 5);
+                    strncpy(result,FOUND,strlen(FOUND));
+                    //encryption of result
+                    for (i = 0; i < strlen(result); i++) {
+                     result[i] = result[i]^keyR;
+                    }                  
+                
+                    bank_send(bank, result, 1000);
+
                 }else{
-                    bank_send(bank, "not found", 9);
+                strncpy(result,NOTFOUND,strlen(NOTFOUND));
+                //encryption of result
+                    for (i = 0; i < strlen(result); i++) {
+                     result[i] = result[i]^keyR;
+                     }
+                    bank_send(bank, result, 1000);
                 }
             }
         }
@@ -420,10 +443,16 @@ void bank_process_remote_command(Bank *bank, char *command,
 
                 strcpy(output, hash_table_find(bank->database, parsed_username));
                 //printf("We are sending this value: %s %d\n", output, strlen(output));
+
+                //encryption of message sent back
+                     for (i = 0; i < strlen(output); i++) {
+                 output[i] = output[i]^keyR;
+                 }
                 bank_send(bank, output, strlen(output));
             }
         }
     }else if(!strncmp(command, WITHDRAW, strlen(WITHDRAW))){
+
         //determine if we can withdraw cash money
         regex_t withdraw_regex;
         char* withdraw_string 
@@ -475,29 +504,44 @@ void bank_process_remote_command(Bank *bank, char *command,
                     //make sure user account exists and deposit
                     char *balance_value;
                     balance_value = hash_table_find(bank->database, withdraw_arg);
-                    
+                    char *cashresult = malloc(200);
+                    memset(cashresult,0x00,200);
                     // add the money to the account
                     if(balance_value != NULL){
+
                         int new_balance, number_length;
                         int current_balance = atoi(balance_value);
 
                         //updating the user's balance if enough funds
                         if (current_balance - amount >= 0){
+
                             new_balance = current_balance - amount;
                             number_length = floor(log10(abs(new_balance))) + 1;
-                        
                             char *new_balance_string = malloc(number_length + 1);
                             sprintf(new_balance_string, "%d", new_balance);
                             new_balance_string[number_length] = '\0';
-
                             hash_table_del(bank->database, withdraw_arg);
                             hash_table_add(bank->database, withdraw_arg, new_balance_string);
 
                             //printf("%s\n", hash_table_find(bank->database, withdraw_arg));
-                            bank_send(bank, withdraw_cash, strlen(withdraw_cash));
+                             strncpy(cashresult,withdraw_cash,strlen(withdraw_cash));
+                            //encryption of result sent back
+                             for (i = 0; i < strlen(cashresult); i++) {
+
+                             cashresult[i] = cashresult[i]^keyR;
+                             }
+
+                            bank_send(bank, cashresult, strlen(cashresult));
+
                         }else{
+
                             //not enough money
-                            bank_send(bank, "-1", 2);
+                             strncpy(cashresult,NOCASH,strlen(NOCASH));
+                             //encryption of result sent back
+                             for (i = 0; i < strlen(cashresult); i++) {
+                            cashresult[i] = cashresult[i]^keyR;
+                            }
+                            bank_send(bank, cashresult, strlen(cashresult));
                         }
                     }else{
                         printf("%s\n", "No such user");

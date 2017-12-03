@@ -117,6 +117,9 @@ void atm_exec(ATM *atm, char* command, char* full_command){
    const char *BEGIN = "begin-session";
    const char *WITHDRAW = "withdraw";
    const char *END = "end-session";
+   const int key = 239485914;
+    const int keyR = 482837124;
+   int i;
 
    // determine if the commands are well-formed
    if(!strncmp(command, END, strlen(END))){
@@ -173,8 +176,17 @@ void atm_exec(ATM *atm, char* command, char* full_command){
                         find_command[10 + strlen(user_create_arg)] = '\0';
 
                 		//check that bank has record of this user
+                        //encryption of message sent
+                           for (i = 0; i < strlen(find_command); i++) {
+                        find_command[i] = find_command[i]^key;
+                        }
                 		atm_send(atm, find_command, strlen(find_command));
                 		atm_recv(atm, received, 1000);
+
+                        //decryption of message recieved
+                        for (i = 0; i < strlen(received); i++) {
+                        received[i] = received[i]^keyR;
+                        }
 
                         // check if the bank had an account of this user
                 		if(!strcmp(received, "found")){
@@ -276,6 +288,7 @@ void atm_exec(ATM *atm, char* command, char* full_command){
                 amount_arg[end - start] = '\0'; 
 
                 char *withdraw_command = malloc(500);
+                memset(withdraw_command,0x00,500);
                 char *received = malloc(500);
                 int n;
                 strcpy(withdraw_command, "withdraw ");
@@ -284,13 +297,22 @@ void atm_exec(ATM *atm, char* command, char* full_command){
                 strcat(withdraw_command, amount_arg);
                 withdraw_command[9 + strlen(atm->curr_user) +
                     1 + strlen(amount_arg)] = '\0';
+                // encryption of message sent
+                for (i = 0; i < strlen(withdraw_command); i++) {
+                withdraw_command[i] = withdraw_command[i]^key;
+                }
 
                 atm_send(atm, withdraw_command, strlen(withdraw_command));
-                n = atm_recv(atm, received, 10);
+                n = atm_recv(atm, received, 1000);
+                //decrytption of message recieved 
+                 for (i = 0; i < strlen(received); i++) {
+                received[i] = received[i]^keyR;
+                }   
                 strncpy(received, received, n);
                 received[n] = '\0';
 
-                if(!strcmp(received, "-1")){
+
+                if(!strcmp(received, "nocash")){
                     printf("%s\n", "Insufficient funds");
                 }else{
                     printf("$%s dispensed\n", received);
@@ -308,13 +330,23 @@ void atm_exec(ATM *atm, char* command, char* full_command){
             strcpy(balance_command, "balance ");
             strcat(balance_command, atm->curr_user);
             balance_command[8 + strlen(atm->curr_user)] = '\0';
+            //encryption of message sent
 
+            for (i = 0; i < strlen(balance_command); i++) {
+            balance_command[i] = balance_command[i]^key;
+            }
             //check that bank has record of this user
+
             atm_send(atm, balance_command, strlen(balance_command));
             n = atm_recv(atm, received, 10);
 
+            //decryption of message recieved
+            for (i = 0; i < strlen(received); i++) {
+            received[i] = received[i]^keyR;
+            }
             //ensuring correct sent length message
             strncpy(received, received, n);
+
             received[n] = '\0';
 
             //print balance
