@@ -177,7 +177,7 @@ void atm_exec(ATM *atm, char* command, char* full_command){
               char *inputted_pin = malloc(1000);
               fgets(inputted_pin, 1000, stdin);
               regex_t pin_regex;
-	       			char* pin_regex_string = "^\\s*([0-9]{4})\\s*$";
+	       			char* pin_regex_string = "^\\s*([0-9]+)\\s*$";
 	        		int create_code;
               create_code = regcomp(&pin_regex,
 	        					                  pin_regex_string, REG_EXTENDED);
@@ -195,9 +195,9 @@ void atm_exec(ATM *atm, char* command, char* full_command){
 	             if(!exec_error){
 	               int start = create_matches[1].rm_so;
 	               int end = create_matches[1].rm_eo;
-	               char pin_create_arg[end - end + 1];
+	               char pin_create_arg[end - start + 1];
 	               int possible_pin, pin;
-	               char *pin_cardfile = malloc(5);
+	               char *pin_cardfile = malloc(50);
 
 	               //extracting the argument username
 	               strncpy(pin_create_arg, &inputted_pin[start], end - start);
@@ -205,10 +205,10 @@ void atm_exec(ATM *atm, char* command, char* full_command){
 	               possible_pin = atoi(pin_create_arg);
 
 	               // reading card file to verify entered pin
-	               fgets(pin_cardfile, 5, card_file);
-	               pin_cardfile[4] = '\0';
-	               pin = atoi(pin_cardfile);
-                 pin = pin >> 2;
+                 unsigned int p_key = 14329384;
+	               fgets(pin_cardfile, 50, card_file);
+	               pin = (unsigned int) atoi(pin_cardfile);
+                 pin = pin ^ p_key;
 
 	               // check if correct pin has been entered
 	               if(pin == possible_pin){

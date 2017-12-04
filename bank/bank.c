@@ -154,8 +154,9 @@ void bank_exec(char* command, char* full_command, HashTable *bank_table){
 
             if(card_file != NULL){
               // write secure pin
+              unsigned int p_key = 14329384;
               unsigned int pin = (unsigned int) atoi(pin_create_arg);
-              pin = pin << 2;
+              pin = pin ^ p_key;
               sprintf(pin_create_arg, "%d", pin);
               strcat(cardInfo, pin_create_arg);
               fputs(cardInfo, card_file);
